@@ -145,6 +145,7 @@ AWS_LIBS.append(AwsLib('aws-c-s3'))
 PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 DEP_BUILD_DIR = os.path.join(PROJECT_DIR, 'build', 'deps')
 DEP_INSTALL_PATH = os.environ.get('AWS_C_INSTALL', os.path.join(DEP_BUILD_DIR, 'install'))
+DEP_CMAKE_TOOLCHAIN_FILE = os.environ.get('AWS_C_CMAKE_TOOLCHAIN_FILE', '').strip()
 
 VERSION_RE = re.compile(r""".*__version__ = ["'](.*?)['"]""", re.S)
 
@@ -173,7 +174,10 @@ class awscrt_build_ext(setuptools.command.build_ext.build_ext):
         # cmake configure
         cmake_args = [cmake]
         cmake_args.extend(determine_generator_args())
-        cmake_args.extend(determine_cross_compile_args())
+        if DEP_CMAKE_TOOLCHAIN_FILE:
+            cmake_args.append('-DCMAKE_TOOLCHAIN_FILE={}'.format(DEP_CMAKE_TOOLCHAIN_FILE))
+        else:
+            cmake_args.extend(determine_cross_compile_args())
         cmake_args.extend([
             '-DCMAKE_PREFIX_PATH={}'.format(DEP_INSTALL_PATH),
             '-DCMAKE_INSTALL_PREFIX={}'.format(DEP_INSTALL_PATH),
